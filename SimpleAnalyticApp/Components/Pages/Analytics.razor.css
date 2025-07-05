@@ -1,0 +1,121 @@
+﻿.styled-table {
+    border-collapse: collapse;
+    margin: 25px 0;
+    font-size: 0.9em;
+    font-family: sans-serif;
+    min-width: 400px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+}
+
+    .styled-table thead tr {
+        background-color: #009879;
+        color: #ffffff;
+        text-align: left;
+    }
+
+    .styled-table th,
+    .styled-table td {
+        padding: 12px 15px;
+    }
+
+    .styled-table tbody tr {
+        border-bottom: 1px solid #dddddd;
+    }
+
+        .styled-table tbody tr:nth-of-type(even) {
+            background-color: #f3f3f3;
+        }
+
+        .styled-table tbody tr:last-of-type {
+            border-bottom: 2px solid #009879;
+        }
+
+        .styled-table tbody tr.active-row {
+            font-weight: bold;
+            color: #009879;
+        }
+
+.styled-button {
+    background: #24b4fb;
+    border-radius: 10px;
+    box-shadow: #5E5DF0 0 10px 20px -10px;
+    box-sizing: border-box;
+    color: #FFFFFF;
+    cursor: pointer;
+    font-family: Inter,Helvetica,"Apple Color Emoji","Segoe UI Emoji",NotoColorEmoji,"Noto Color Emoji","Segoe UI Symbol","Android Emoji",EmojiSymbols,-apple-system,system-ui,"Segoe UI",Roboto,"Helvetica Neue","Noto Sans",sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 24px;
+    opacity: 1;
+    outline: 0 solid transparent;
+    padding: 8px 18px;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    width: fit-content;
+    word-break: break-word;
+    border: 0;
+    transition-duration: 0.4s;
+}
+
+.sync-button {
+    background-color: #488aec;
+}
+    .sync-button:hover {
+        background-color: #386bb9;
+    }
+    .sync-button:active {
+        background-color: #386bb9;
+        transform: translateY(2px);
+    }
+
+.start-button {
+    background-color: #24b4fb;
+}
+    .start-button:hover {
+        background-color: #0071e2;
+        color: white;
+    }
+    .start-button:disabled {
+        background-color: #0071e2;
+        color: white;
+        opacity: 0.4;
+    }
+    .start-button:active {
+        background-color: #0071e2;
+        transform: translateY(2px);
+    }
+
+.stop-button {
+    background-color: #e8000d;
+}
+    .stop-button:hover {
+        background-color: #a30008;
+        color: white;
+    }
+    .stop-button:disabled {
+        background-color: #a30008;
+        color: white;
+        opacity: 0.4;
+    }
+    .stop-button:active {
+        background-color: #a30008;
+        transform: translateY(2px);
+    }
+
+.edit-button{
+    background-color: #5E5DF0;
+}
+    .edit-button:hover {
+        color: white;
+        background-color: #4a49bd;
+    }
+    .edit-button:disabled {
+        background-color: #4a49bd;
+        color: white;
+        opacity: 0.4;
+    }
+    .edit-button:active {
+        background-color: #4a49bd;
+        transform: translateY(2px)
+    }

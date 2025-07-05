@@ -1,0 +1,1 @@
+﻿* write some pinging code that pings the server, if the pinging stops, server shutdown the analytic.

@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36221.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleAnalyticApp", "SimpleAnalyticApp\SimpleAnalyticApp.csproj", "{EE41544C-8686-4AD1-89CF-2BA136FF388B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{EE41544C-8686-4AD1-89CF-2BA136FF388B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EE41544C-8686-4AD1-89CF-2BA136FF388B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EE41544C-8686-4AD1-89CF-2BA136FF388B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EE41544C-8686-4AD1-89CF-2BA136FF388B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {5E93CD2F-7AA4-4C21-B04E-2066A86015BB}
+	EndGlobalSection
+EndGlobal

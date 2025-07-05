@@ -1,0 +1,45 @@
+﻿@page "/liveview"
+@rendermode InteractiveServer
+
+@using SimpleAnalyticApp.Services
+@using SimpleAnalyticApp.Models
+
+@inject NavigationManager NavManager
+@inject IWebHostEnvironment env
+@inject ITaskService TaskService
+@inject SimpleAnalyticApp.Utils.TcpClientHandler TcpClient
+
+<h3>Reports</h3>
+
+@if (tasksList.Count != 0)
+{
+    <div class="container">
+        @foreach (var task in tasksList)
+        {
+            <div>
+                <p>@task.TaskName</p>
+                <img src="/stream/@task.Id" style="border:2px solid black; max-width: 100%; height:auto;" />
+            </div>
+        }
+    </div>
+
+    @* <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+        @foreach(var task in tasksList)
+        {
+            <div>
+                <p>@task.TaskName</p>
+                <img src="/stream/@task.Id" style="border:2px solid black; max-width: 100%; height:auto;" />
+            </div>
+        }
+    </div> *@
+}
+
+@code {
+
+    private List<TaskModel> tasksList = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        tasksList = await TaskService.GetTasks();
+    }
+}

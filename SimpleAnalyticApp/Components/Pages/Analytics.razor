@@ -1,0 +1,217 @@
+﻿@page "/analytics"
+@rendermode InteractiveServer
+
+@using SimpleAnalyticApp.Components.Pages.PartialPages
+@using SimpleAnalyticApp.Models
+@using SimpleAnalyticApp.Services
+@using System.Diagnostics;
+@using System.Text.Json
+
+@inject NavigationManager NavManager
+@inject IWebHostEnvironment env
+@inject ITaskService TaskService
+@inject SimpleAnalyticApp.Utils.TcpClientHandler TcpClient
+
+<h1>Analytics</h1>
+
+<button @onclick="ShowForm">New Analytic</button>
+
+<div class="row">
+    <table class="styled-table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Task Name</th>
+                <th>Model</th>
+                <th>Variation</th>
+                <th>Detection</th>
+                <th>Status</th>
+                <th>Options</th>
+            </tr>
+        </thead>
+        <tbody>
+            @for(int i = 0; i < tasksList.Count; i++)
+            {
+                var idx = i;
+                var task = tasksList[idx];
+                <tr>
+                    <td>@i</td>
+                    <td>@task.TaskName</td>
+                    <td>@task.ModelType</td>
+                    <td>@task.ModelVariation</td>
+                    <td>@task.Detection</td>
+                    <td>@taskStatuses[i]</td>
+                    <td>
+                        <button class="styled-button start-button" @onclick="() => Start(idx)">Start</button>
+                        <button class="styled-button stop-button" @onclick="() => Stop(idx)">Stop</button>
+                        <button class="styled-button edit-button">Edit</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<LoadingDialog ShowLoadingDialog="@ShowLoading" />
+<TaskFormPartial DetectionsArray="@lines" Visible="@ShowModal" VisibleChanged="@((v) => ShowModal = v)" RefreshList="LoadTasks" />
+<MessageBox ModalMessage="@modalMessage" MessageVisible="@ShowMsgBox" MessageVisibleChanged="@((v) => ShowMsgBox = v)"/>
+
+@code {
+    private string receivedData = "";
+    private string messageToSend = "";
+    private string ack = "";
+
+    private bool ShowModal = false;
+
+    private bool ShowMsgBox = false;
+    private string modalMessage = string.Empty;
+
+    private bool ShowLoading = false;
+
+    private string[]? lines;
+
+    private List<TaskModel> tasksList { get; set; } = new();
+    private List<string> taskStatuses { get; set; } = new();
+
+    private Timer? timer;
+
+    private void timerCallback(Object? obj)
+    {
+        for (int i = 0; i < tasksList.Count; i++)
+        {
+            Sync(i);
+        }
+
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var filePath = Path.Combine(env.ContentRootPath, "Content", "classes.txt");
+            if (File.Exists(filePath))
+                lines = File.ReadAllLines(filePath);
+
+            await LoadTasks();
+
+            timer = new Timer(timerCallback, null, 0, 5000);
+        }
+        catch (Exception ex)
+        {
+            var lines = new List<string> { $"Error: {ex.Message}" };
+        }
+    }
+
+
+
+    private async Task LoadTasks()
+    {
+        tasksList = await TaskService.GetTasks();
+        taskStatuses.Clear();
+        taskStatuses.AddRange(Enumerable.Repeat("Unavailable", tasksList.Count));
+    }
+
+    private async Task<string> Sync(int idx)
+    {
+        var item = tasksList[idx];
+        var message = new MessageModel<object>()
+        {
+            MessageId = Guid.NewGuid().ToString(),
+            Instruction = "Sync",
+            Message = item,
+        };
+        var response = await TcpClient.SendMessage(message);
+        var respModel = JsonSerializer.Deserialize<MessageModel<string>>(response);
+
+        var status = respModel.Message;
+        taskStatuses[idx] = status;
+
+        return status;
+    }
+
+    private async void Start(int idx)
+    {
+        var resp = await Sync(idx);
+        if(resp == "Running")
+        {
+            modalMessage = "Analytic is already running!";
+            ShowMsgBox = true;
+            StateHasChanged();
+            return;
+        }
+
+        ShowLoading = true;
+        StateHasChanged();
+        await Task.Delay(2000);
+        try
+        {
+            var message = new MessageModel<object>()
+            {
+                MessageId = Guid.NewGuid().ToString(),
+                Instruction = "Start",
+                Message = tasksList[idx].Id,
+            };
+            var response = await TcpClient.SendMessage(message);
+            var respModel = JsonSerializer.Deserialize<MessageModel<string>>(response);
+
+        }
+        catch (Exception ex)
+        {
+            modalMessage = $"Error: {ex.Message}";
+            ShowMsgBox = true;
+        }
+        finally
+        {
+            ShowLoading = false;
+            modalMessage = "Analytic started successfully!";
+            ShowMsgBox = true;
+            StateHasChanged();
+        }
+    }
+
+    private async void Stop(int idx)
+    {
+        var resp = await Sync(idx);
+        if (resp == "Stopped")
+        {
+            modalMessage = "Analytic is already stopped!";
+            ShowMsgBox = true;
+            StateHasChanged();
+            return;
+        }
+        ShowLoading = true;
+        StateHasChanged();
+        try
+        {
+            var message = new MessageModel<object>()
+            {
+                MessageId = Guid.NewGuid().ToString(),
+                Instruction = "Stop",
+                Message = tasksList[idx].Id,
+            };
+            var response = await TcpClient.SendMessage(message);
+            var respModel = JsonSerializer.Deserialize<MessageModel<string>>(response);
+        }
+        catch (Exception ex)
+        {
+            modalMessage = $"Error: {ex.Message}";
+            ShowMsgBox = true;
+        }
+        finally
+        {
+            ShowLoading = false;
+            modalMessage = "Analytic stopped successfully!";
+            ShowMsgBox = true;
+            StateHasChanged();
+        }
+    }
+
+    public void ShowForm()
+    {
+        ShowModal = !ShowModal;
+    }
+}

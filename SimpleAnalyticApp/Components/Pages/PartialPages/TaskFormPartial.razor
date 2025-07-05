@@ -1,0 +1,135 @@
+﻿@using SimpleAnalyticApp.Models
+
+@inject SimpleAnalyticApp.Services.ITaskService TaskService;
+
+@if (Visible)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <EditForm Model="@TaskForm" OnValidSubmit="UpdateDB">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Create a task</h5>
+                        <button type="button" class="btn-close" @onclick="Close"></button>
+                    </div>
+
+                    <div class="modal-body">
+
+                        <div class="mb-3">
+                            <label class="form-label">Task Name</label>
+                            <InputText class="form-control" @bind-Value="TaskForm.TaskName" required />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Yolo Model</label>
+                            <select class="form-select" @bind="TaskForm.ModelType">
+                                <option value="">-- Select a model --</option>
+                                @foreach (var item in YoloModels)
+                                {
+                                    <option value="@item">@item</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Model Variation</label>
+                            <select class="form-select" @bind="TaskForm.ModelVariation">
+                                <option value="">-- Select a variation --</option>
+                                @foreach (var item in YoloVariations)
+                                {
+                                    <option value="@item">@item</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Detection</label>
+                            <select class="form-select" @bind="TaskForm.Detection">
+                                <option value="">-- Select a detection --</option>
+                                @foreach (var item in DetectionsArray)
+                                {
+                                    <option value="@item">@item</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Input URL</label>
+                            <InputText class="form-control" @bind-Value="TaskForm.InputURL" required />
+                        </div>
+
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" @onclick="Close">Cancel</button>
+                        <button type="submit" class="btn btn-primary" disabled="@IsSubmitDisabled">Submit</button>
+                    </div>
+                </EditForm>
+
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool Visible { get; set; }
+    [Parameter] public EventCallback<bool> VisibleChanged { get; set; }
+    [Parameter] public string[] DetectionsArray { get; set; }
+    [Parameter] public EventCallback RefreshList { get; set; }
+
+    private TaskModel TaskForm { get; set; } = new();
+    private TaskModel InitForm()
+    {
+        return new TaskModel()
+        {
+            TaskName = string.Empty,
+            ModelType = string.Empty,
+            ModelVariation = string.Empty,
+            Detection = string.Empty,
+            InputURL = string.Empty,
+        };
+    }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        TaskForm = InitForm();
+    }
+
+    private bool IsSubmitDisabled =>
+        string.IsNullOrEmpty(TaskForm.ModelType) || 
+        string.IsNullOrEmpty(TaskForm.ModelVariation) || 
+        string.IsNullOrEmpty(TaskForm.Detection);
+
+    private List
+    <string> YoloModels = new()
+    {
+        "Yolo11",
+        "Yolo8"
+    };
+
+    private List<string> YoloVariations = new()
+    {
+        "Nano",
+        "Small",
+        "Large"
+    };
+
+    private async Task Close()
+    {
+        if(RefreshList.HasDelegate)
+        {
+            await RefreshList.InvokeAsync();
+        }
+        await VisibleChanged.InvokeAsync(false);
+    }
+
+    private async Task UpdateDB()
+    {
+        await TaskService.AddTask(TaskForm);
+        TaskForm = new();
+        await Close();
+    }
+}
