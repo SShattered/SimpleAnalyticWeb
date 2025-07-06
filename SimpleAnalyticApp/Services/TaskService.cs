@@ -38,9 +38,10 @@ namespace SimpleAnalyticApp.Services
             return list.OrderBy(x => x.TaskName).ToList();
         }
 
-        public Task UpdateTask(TaskModel task)
+        public async Task UpdateTask(TaskModel task)
         {
-            throw new NotImplementedException();
+            _context.Tasks.Update(task);
+            await _context.SaveChangesAsync();
         }
     }
 }

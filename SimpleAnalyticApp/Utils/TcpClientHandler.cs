@@ -10,15 +10,11 @@ namespace SimpleAnalyticApp.Utils
 {
     public class TcpClientHandler
     {
-        private byte[]? latestFrame;
-        private readonly object _lock = new();
-
-        private readonly object _sendLock = new();
-
-        private TcpClient client;
+        private TcpClient? client;
         private Stream? stream;
 
         private readonly ConcurrentDictionary<string, byte[]> frames = new();
+        private readonly ConcurrentDictionary<string, int> detections = new();
         private ConcurrentDictionary<string, TaskCompletionSource<string>> pendingMessages;
         private readonly SemaphoreSlim writeLock = new SemaphoreSlim(1, 1);
 
@@ -26,15 +22,55 @@ namespace SimpleAnalyticApp.Utils
 
         public TcpClientHandler()
         {
-            client = new TcpClient();
             pendingMessages = new ConcurrentDictionary<string, TaskCompletionSource<string>>();
             Debug.WriteLine("TcpCommHandler");
         }
 
-        public async void Connect()
+        public async Task Connect(string ip, int port)
         {
-            client.Connect("127.0.0.1", 9999);
+            client = new TcpClient();
+            await client.ConnectAsync(ip, port);
             stream = client.GetStream();
+            Listen();
+        }
+
+        public bool IsConnected()
+        {
+            try
+            {
+                if (client == null || !client.Connected)
+                    return false;
+
+                if (client.Client.Poll(0, SelectMode.SelectRead))
+                {
+                    byte[] buffer = new byte[1];
+                    return !(client.Client.Receive(buffer, SocketFlags.Peek) == 0);
+                }
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public async Task<bool> Disconnect()
+        {
+            try
+            {
+                if (client.Connected)
+                {
+                    stream?.Close();
+                    client.Close();
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error disconnecting: {ex.Message}");
+            }
+            return false;
         }
 
         public void Listen()
@@ -46,7 +82,7 @@ namespace SimpleAnalyticApp.Utils
                 {
                     try
                     {
-                        await stream.ReadExactlyAsync(lengthBuffer, 0, 4); // .NET 8+
+                        await stream.ReadExactlyAsync(lengthBuffer, 0, 4);
                         int length = BitConverter.ToInt32(lengthBuffer.Reverse().ToArray(), 0); // big-endian
 
                         var frameBuffer = new byte[length];
@@ -65,12 +101,16 @@ namespace SimpleAnalyticApp.Utils
                             if(messageModel.Instruction == "Frame")
                             {
                                 frames[messageModel.MessageId] = Convert.FromBase64String(messageModel.Message);
+                            }else if(messageModel.Instruction == "Detections")
+                            {
+                                detections[messageModel.MessageId] = Convert.ToInt32(messageModel.Message);
                             }
                         }
                     }
                     catch (Exception ex)
                     {
                         Debug.WriteLine(ex.ToString());
+                        break;
                     }
                 }
             });
@@ -111,6 +151,15 @@ namespace SimpleAnalyticApp.Utils
         {
             frames.TryGetValue(streamId, out var frame);
             return frame;
+        }
+
+        public string GetLatestDetections(string id)
+        {
+            if (detections.TryGetValue(id, out var count))
+            {
+                return count.ToString();
+            }
+            return "NA";
         }
     }
 }

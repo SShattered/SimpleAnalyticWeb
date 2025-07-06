@@ -119,3 +119,20 @@
         background-color: #4a49bd;
         transform: translateY(2px)
     }
+
+.add-button {
+    background-color: #f94645;
+}
+    .add-button:hover {
+        background-color: white;
+        color: black;
+    }
+    .add-button:disabled {
+        background-color: #c53736;
+        color: white;
+        opacity: 0.4;
+    }
+    .add-button:active {
+        background-color: white;
+        transform: translateY(2px);
+    }

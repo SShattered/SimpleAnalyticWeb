@@ -1,7 +1,7 @@
 ﻿.container {
     display: grid;
     grid-template-columns: auto auto;
-    background-color: dodgerblue;
+    /*background-color: dodgerblue;*/
     padding: 5px;
 }
 

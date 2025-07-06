@@ -1,7 +1,68 @@
-﻿@page "/server"
+﻿@page "/"
+@rendermode InteractiveServer
 
-<h3>Server</h3>
+
+@using SimpleAnalyticApp.Models
+@using SimpleAnalyticApp.Services
+
+@inject SimpleAnalyticApp.Utils.TcpClientHandler TcpClient
+
+<div class="center-container">
+    <div class="signin-box">
+        <div class="left">
+            <h2>Server Config</h2>
+            <input type="text" placeholder="Server IP" @bind-value="@ServerIP">
+            <input type="number" placeholder="Port" @bind-value="@Port">
+            <button @onclick="@(TcpClient.IsConnected() ? DisconnectFromServer : ConnectToServer)">@ButtonText</button>
+        </div>
+        <div class="right">
+            @StatusText
+        </div>
+    </div>
+</div>
+
 
 @code {
+    private string ServerIP { get; set; } = "127.0.0.1";
+    private int Port { get; set; } = 9999;
 
+    private string ButtonText { get; set; } = "Connect";
+
+    private string StatusText { get; set; } = "Not connected!";
+
+    protected override void OnInitialized()
+    {
+        CheckConnection();
+    }
+    
+    private void CheckConnection()
+    {
+        if (TcpClient.IsConnected())
+        {
+            ButtonText = "Disconnect";
+            StatusText = "Connected";
+        }
+        else
+        {
+            ButtonText = "Connect";
+            StatusText = "Disconnected";
+        }
+        StateHasChanged();
+    }
+
+    private async void ConnectToServer()
+    {
+        var connected = TcpClient.IsConnected();
+        if(!connected)
+        {
+            await TcpClient.Connect(ServerIP, Port);
+            CheckConnection();
+        }
+    }
+
+    private async void DisconnectFromServer()
+    {
+        await TcpClient.Disconnect();
+        CheckConnection();
+    }
 }

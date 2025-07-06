@@ -11,28 +11,58 @@
 
 <h3>Reports</h3>
 
-@if(tasksList.Count !=0)
+@if(TasksList.Count !=0)
 {
-    @foreach(var task in tasksList)
-    {
-        <div class="card" style="width: 18rem;">
-            <div class="card-body">
-                <h5 class="card-title">@task.TaskName</h5>
-                <h6 class="card-subtitle mb-2 text-muted">@task.Id</h6>
-                <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-                <a href="#" class="card-link">Card link</a>
-                <a href="#" class="card-link">Another link</a>
+    <div class="container">
+
+        @for (int i = 0; i < TasksList.Count; i++)
+        {
+            var idx = i;
+            var task = TasksList[idx];
+            <div class="card" style="max-width: 100%; height:auto;">
+                <div class="card-body">
+                    <h5 class="card-title">@task.TaskName</h5>
+                    <h6 class="card-subtitle mb-2 text-muted">@task.ModelType</h6>
+                    <h6 class="card-subtitle mb-2 text-muted">@task.Detection</h6>
+                    <h4>Detected: @Detections[idx]</h4>
+                    <p class="card-text"></p>
+                </div>
             </div>
-        </div>
-    }
+
+        }
+    </div>
 }
 
 @code {
 
-    private List<TaskModel> tasksList = new();
+    private List<TaskModel> TasksList = new();
+    private List<string> Detections = new();
+
+    private Timer? timer;
 
     protected override async Task OnInitializedAsync()
     {
-        tasksList = await TaskService.GetTasks();
+        TasksList = await TaskService.GetTasks();
+        Detections.AddRange(Enumerable.Repeat("NA", TasksList.Count));
+        timer = new Timer(async _ =>
+        {
+            for (int i = 0; i < TasksList.Count; i++)
+            {
+                var task = TasksList[i];
+                var detection = TcpClient.GetLatestDetections(task.Id);
+                if (detection != null)
+                {
+                    if (Detections.Count <= i)
+                    {
+                        Detections.Add(detection);
+                    }
+                    else
+                    {
+                        Detections[i] = detection;
+                    }
+                }
+            }
+            await InvokeAsync(StateHasChanged);
+        }, null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
     }
 }

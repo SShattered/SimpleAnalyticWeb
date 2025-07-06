@@ -20,8 +20,8 @@ builder.Services.AddControllers();
 var app = builder.Build();
 
 var tcpClientHandler = app.Services.GetRequiredService<TcpClientHandler>();
-tcpClientHandler.Connect();
-tcpClientHandler.Listen();
+//tcpClientHandler.Connect();
+//tcpClientHandler.Listen();
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

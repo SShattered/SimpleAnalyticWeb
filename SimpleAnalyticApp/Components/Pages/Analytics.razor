@@ -14,7 +14,7 @@
 
 <h1>Analytics</h1>
 
-<button @onclick="ShowForm">New Analytic</button>
+<button class="styled-button add-button" @onclick="ShowAddTask">New Analytic</button>
 
 <div class="row">
     <table class="styled-table">
@@ -44,7 +44,7 @@
                     <td>
                         <button class="styled-button start-button" @onclick="() => Start(idx)">Start</button>
                         <button class="styled-button stop-button" @onclick="() => Stop(idx)">Stop</button>
-                        <button class="styled-button edit-button">Edit</button>
+                        <button class="styled-button edit-button" @onclick="() => EditTask(idx)">Edit</button>
                     </td>
                 </tr>
             }
@@ -53,7 +53,7 @@
 </div>
 
 <LoadingDialog ShowLoadingDialog="@ShowLoading" />
-<TaskFormPartial DetectionsArray="@lines" Visible="@ShowModal" VisibleChanged="@((v) => ShowModal = v)" RefreshList="LoadTasks" />
+<TaskFormPartial TaskModel="@TaskModel" DetectionsArray="@lines" Visible="@ShowModal" VisibleChanged="@((v) => ShowModal = v)" RefreshList="LoadTasks" />
 <MessageBox ModalMessage="@modalMessage" MessageVisible="@ShowMsgBox" MessageVisibleChanged="@((v) => ShowMsgBox = v)"/>
 
 @code {
@@ -74,6 +74,8 @@
     private List<string> taskStatuses { get; set; } = new();
 
     private Timer? timer;
+
+    private TaskModel TaskModel { get; set; } = new();
 
     private void timerCallback(Object? obj)
     {
@@ -146,7 +148,8 @@
 
         ShowLoading = true;
         StateHasChanged();
-        await Task.Delay(2000);
+        // Add a delay to reduce overhead :)
+        await Task.Delay(1000);
         try
         {
             var message = new MessageModel<object>()
@@ -210,7 +213,19 @@
         }
     }
 
-    public void ShowForm()
+    public void EditTask(int idx)
+    {
+        TaskModel = tasksList[idx];
+        ShowUpdateTask();
+    }
+
+    public void ShowAddTask()
+    {
+        TaskModel = new();
+        ShowModal = !ShowModal;
+    }
+
+    public void ShowUpdateTask()
     {
         ShowModal = !ShowModal;
     }

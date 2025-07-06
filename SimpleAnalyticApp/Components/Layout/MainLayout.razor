@@ -1,5 +1,9 @@
 ﻿@inherits LayoutComponentBase
 
+@using SimpleAnalyticApp.Utils;
+
+@inject SimpleAnalyticApp.Utils.TcpClientHandler TcpClient;
+
 <div class="page">
     <div class="sidebar">
         <NavMenu />
@@ -7,7 +11,7 @@
 
     <main>
         <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+            <h6 style="font-weight: bold;">Status: @ServerStatus</h6>
         </div>
 
         <article class="content px-4">
@@ -21,3 +25,25 @@
     <a href="" class="reload">Reload</a>
     <a class="dismiss">🗙</a>
 </div>
+
+@code{
+    private string ServerStatus { get; set; } = "Disconnected";
+
+    private Timer? timer;
+
+    protected override void OnInitialized()
+    {
+        timer = new Timer(async _ =>
+        {
+            if (TcpClient.IsConnected())
+            {
+                ServerStatus = "Connected";
+            }
+            else
+            {
+                ServerStatus = "Disconnected";
+            }
+            await InvokeAsync(StateHasChanged);
+        }, null, TimeSpan.Zero, TimeSpan.FromSeconds(5));
+    }
+}
